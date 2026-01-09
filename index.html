@@ -1528,19 +1528,21 @@ function selectTeams() {
 team1 = shuffled.slice(0, teamSize);
 team2 = shuffled.slice(teamSize, teamSize * 2);
 
-// アイテムON/OFF（チェックボックスが無いなら true でもOK）
-const enableItems = document.getElementById("enableItems")?.checked ?? true;
+// アイテムON/OFF（チェックボックスが無い場合はON扱い）
+let enableItems = true;
+const enableItemsEl = document.getElementById("enableItems");
+if (enableItemsEl) enableItems = enableItemsEl.checked;
 
 if (enableItems) {
   // 2パターン合計でアイテム重複なし
-  const combined = [...team1, ...team2];
+  const combined = team1.concat(team2);
 
   if (combined.length > ITEM_LIST.length) {
     alert("アイテム数が足りません（重複なしのため）\nアイテムを増やすか、チーム人数を減らしてください。");
     return;
   }
 
-  const itemPool = shuffle([...ITEM_LIST]); // シャッフルして先頭から配る
+  const itemPool = shuffle(ITEM_LIST.slice()); // コピーしてシャッフル
   const withItems = combined.map((p, idx) => ({
     ...p,
     item: itemPool[idx]
@@ -1549,10 +1551,10 @@ if (enableItems) {
   team1 = withItems.slice(0, teamSize);
   team2 = withItems.slice(teamSize);
 } else {
-  // OFFなら item を空に
   team1 = team1.map(p => ({ ...p, item: null }));
   team2 = team2.map(p => ({ ...p, item: null }));
 }
+
     tries++;
 
     if (tries > 400) {
