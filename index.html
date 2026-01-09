@@ -1524,6 +1524,7 @@ function selectTeams() {
   let team1, team2, tries = 0;
 
   do {
+    const shuffled = shuffle(filteredBox);
     // いったんアイテムなしでチームを作る
 team1 = shuffled.slice(0, teamSize);
 team2 = shuffled.slice(teamSize, teamSize * 2);
