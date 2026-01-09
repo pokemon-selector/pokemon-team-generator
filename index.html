@@ -114,6 +114,13 @@
 
 <button onclick="selectTeams()">選出する</button>
 
+<div class="box">
+  <h2>対戦相手（ランダム行動）</h2>
+  <div id="enemyStatus">敵は待機中</div>
+  <button onclick="enemyTurn()" style="margin-top:10px;">敵の行動</button>
+  <ul id="battleLog"></ul>
+</div>
+
 <script>
 
 const RAW_BOX = [
@@ -1468,6 +1475,33 @@ function selectTeams() {
 
   document.getElementById("team2").innerHTML =
     team2.map(p => `<li>${p.name}</li>`).join("");
+}
+
+const ENEMY_MOVES = [
+  { id: 1, name: "1の攻撃" },
+  { id: 2, name: "2の攻撃" },
+  { id: 3, name: "3の攻撃" },
+  { id: 4, name: "4の攻撃" },
+];
+
+// ランダムで1つ選ぶ
+function pickRandomMove() {
+  const i = Math.floor(Math.random() * ENEMY_MOVES.length);
+  return ENEMY_MOVES[i];
+}
+
+// ログに追加
+function addLog(text) {
+  const li = document.createElement("li");
+  li.textContent = text;
+  document.getElementById("battleLog").prepend(li);
+}
+
+// 敵の1ターン
+function enemyTurn() {
+  const move = pickRandomMove();
+  document.getElementById("enemyStatus").textContent = `敵の行動：${move.name}`;
+  addLog(`敵は ${move.name} を選んだ！`);
 }
 
 </script>
