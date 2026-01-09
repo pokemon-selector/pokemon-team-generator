@@ -121,6 +121,11 @@
   <ul id="battleLog"></ul>
 </div>
 
+<button onclick="resetEnemy()" style="background:#777;">
+  敵の行動をリセット
+</button>
+
+
 <script>
 
 const RAW_BOX = [
@@ -1502,6 +1507,14 @@ function enemyTurn() {
   const move = pickRandomMove();
   document.getElementById("enemyStatus").textContent = `敵の行動：${move.name}`;
   addLog(`敵は ${move.name} を選んだ！`);
+}
+
+function resetEnemy() {
+  // 行動表示を初期状態に戻す
+  document.getElementById("enemyStatus").textContent = "敵は待機中";
+
+  // ログを消す（不要ならこの行は削除OK）
+  document.getElementById("battleLog").innerHTML = "";
 }
 
 </script>
