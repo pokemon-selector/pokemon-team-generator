@@ -1145,6 +1145,31 @@ const BOX = RAW_BOX.map(name => ({
 console.table(BOX);
 console.log("世代未分類:", BOX.filter(p => p.gen === null));
 console.log("カテゴリ未分類:", BOX.filter(p => p.category === "normal"));
+
+function shuffle(array) {
+  return [...array].sort(() => Math.random() - 0.5);
+}
+
+function selectTeams() {
+  if (BOX.length < 6) {
+    alert("BOXの数が足りません");
+    return;
+  }
+
+  // シャッフル
+  const shuffled = shuffle(BOX);
+
+  // 3体ずつ・被りなし
+  const team1 = shuffled.slice(0, 3);
+  const team2 = shuffled.slice(3, 6);
+
+  // 表示
+  document.getElementById("team1").innerHTML =
+    team1.map(p => `<li>${p.name}</li>`).join("");
+
+  document.getElementById("team2").innerHTML =
+    team2.map(p => `<li>${p.name}</li>`).join("");
+}
 </script>
 
 </body>
