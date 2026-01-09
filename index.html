@@ -100,6 +100,8 @@
   </label>
 </div>
 
+<button onclick="resetSettings()" style="margin-top:10px;background:#777;">条件をリセット</button>
+
 <div class="box">
   <h2>パターン1</h2>
   <ul id="team1"></ul>
@@ -1237,6 +1239,9 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     renderTypeCheckboxes(); // ←追加
 
+    loadSettings();         // ←復元（renderの後！）
+    attachAutoSave();       // ←自動保存ON
+
     console.log("タイプ未取得:", BOX.filter(p => p.types === null).map(p => p.name));
   } catch (e) {
     console.error(e);
@@ -1318,6 +1323,91 @@ function isTypeCapOk(pokemons, cap) {
   if (!cap || cap <= 0) return true; // 0なら無制限
   const typeCounts = countTypes(pokemons);
   return Object.values(typeCounts).every(c => c <= cap);
+}
+
+const STORAGE_KEY = "poke_selector_settings_v1";
+
+// 現在のUI状態を読み取って保存
+function saveSettings() {
+  const settings = {
+    gens: Array.from(document.querySelectorAll(".gen:checked")).map(cb => Number(cb.value)),
+    cats: Array.from(document.querySelectorAll(".cat:checked")).map(cb => cb.value),
+    types: Array.from(document.querySelectorAll("#typeFilters input[type=checkbox]:checked")).map(cb => cb.value),
+    legendLimit: Number(document.getElementById("legendLimit")?.value ?? 0),
+    teamSize: Number(document.getElementById("teamSize")?.value ?? 3),
+    typeCap: Number(document.getElementById("typeCap")?.value ?? 0),
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+}
+
+function resetSettings() {
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+}
+
+// 保存データをUIに復元
+function loadSettings() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return;
+
+  let settings;
+  try {
+    settings = JSON.parse(raw);
+  } catch (e) {
+    console.warn("保存データが壊れているので無視します", e);
+    return;
+  }
+
+  // 世代
+  if (Array.isArray(settings.gens)) {
+    document.querySelectorAll(".gen").forEach(cb => {
+      cb.checked = settings.gens.includes(Number(cb.value));
+    });
+  }
+
+  // カテゴリ
+  if (Array.isArray(settings.cats)) {
+    document.querySelectorAll(".cat").forEach(cb => {
+      cb.checked = settings.cats.includes(cb.value);
+    });
+  }
+
+  // タイプ
+  if (Array.isArray(settings.types)) {
+    document.querySelectorAll("#typeFilters input[type=checkbox]").forEach(cb => {
+      cb.checked = settings.types.includes(cb.value);
+    });
+  }
+
+  // 数値系
+  if (document.getElementById("legendLimit") && Number.isFinite(settings.legendLimit)) {
+    document.getElementById("legendLimit").value = String(settings.legendLimit);
+  }
+  if (document.getElementById("teamSize") && Number.isFinite(settings.teamSize)) {
+    document.getElementById("teamSize").value = String(settings.teamSize);
+  }
+  if (document.getElementById("typeCap") && Number.isFinite(settings.typeCap)) {
+    document.getElementById("typeCap").value = String(settings.typeCap);
+  }
+}
+
+function attachAutoSave() {
+  // チェックボックス / セレクト / 入力の変更を拾う
+  document.addEventListener("change", (e) => {
+    const t = e.target;
+
+    // 世代・カテゴリ・タイプ・各select が対象
+    if (
+      t.matches(".gen") ||
+      t.matches(".cat") ||
+      t.matches("#typeFilters input[type=checkbox]") ||
+      t.matches("#legendLimit") ||
+      t.matches("#teamSize") ||
+      t.matches("#typeCap")
+    ) {
+      saveSettings();
+    }
+  });
 }
 
 
