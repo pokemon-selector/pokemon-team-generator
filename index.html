@@ -42,6 +42,15 @@
 <h1>ポケモン自動選出</h1>
 
 <div class="box">
+  <h2>選出数（1パターンあたり）</h2>
+  <select id="teamSize">
+    <option value="3" selected>3体</option>
+    <option value="4">4体</option>
+    <option value="6">6体</option>
+  </select>
+</div>
+
+<div class="box">
   <h2>世代</h2>
   <label><input type="checkbox" class="gen" value="1" checked> 第1世代</label><br>
   <label><input type="checkbox" class="gen" value="2" checked> 第2世代</label><br>
@@ -82,6 +91,7 @@
 <button onclick="selectTeams()">選出する</button>
 
 <script>
+
 const RAW_BOX = [
     "フシギソウ",
     "フシギバナ",
@@ -1144,6 +1154,8 @@ const CATEGORY_MAP = {
 
 const LIMITED_CATEGORIES = ["legend", "mythical"];
 
+const teamSize = Number(document.getElementById("teamSize").value);
+
 // ===== 世代判定 =====
 function getGen(name) {
   for (const gen in GEN_MAP) {
@@ -1202,6 +1214,9 @@ function selectTeams() {
     document.getElementById("legendLimit").value
   );
 
+  // チーム人数
+  const teamSize = Number(document.getElementById("teamSize").value);
+
   // 条件で絞る
   const filteredBox = BOX.filter(p =>
     enabledGens.includes(p.gen) &&
@@ -1216,13 +1231,13 @@ function selectTeams() {
   // 制限を満たすまで抽選
   let team1, team2, tries = 0;
 
-  do {
+ do {
     const shuffled = shuffle(filteredBox);
-    team1 = shuffled.slice(0, 3);
-    team2 = shuffled.slice(3, 6);
+    team1 = shuffled.slice(0, teamSize);
+    team2 = shuffled.slice(teamSize, teamSize * 2);
     tries++;
-    if (tries > 100) {
-      alert("条件が厳しすぎます");
+    if (tries > 200) {
+      alert("条件が厳しすぎます（伝説・幻の上限などを緩めてください）");
       return;
     }
   } while (
