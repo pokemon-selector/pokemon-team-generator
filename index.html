@@ -100,6 +100,13 @@
   </label>
 </div>
 
+<div class="box">
+  <label style="display:block; margin-top:10px;">
+    <input type="checkbox" id="enableItems" checked>
+    アイテムを持たせる
+  </label>
+</div>
+
 <button onclick="resetSettings()" style="margin-top:10px;background:#777;">条件をリセット</button>
 
 <div class="box">
@@ -1211,7 +1218,23 @@ const ITEM_LIST = [
   "オボンのみ",
   "ラムのみ",
   "とつげきチョッキ",
-  "じゃくてんほけん"
+  "じゃくてんほけん",
+  "かいがらのすず",
+  "ひかりのこな",
+  "ピントレンズ",
+  "ふうせん",
+  "メトロノーム",
+  "レッドカード",
+  "ゴツゴツメット",
+  "しんかのきせき",
+  "せんせいのツメ",
+  "だっしゅつボタン",
+  "たつじんのおび",
+  "ちからのハチマキ",
+  "ぼうじんゴーグル",
+  "おうじゃのしるし",
+  "ぼうごパット",
+  "Zクリスタル"
 ];
 
 // ===== 世代判定 =====
@@ -1354,6 +1377,24 @@ function pickRandomItem() {
   const i = Math.floor(Math.random() * ITEM_LIST.length);
   return ITEM_LIST[i];
 }
+function shuffle(arr) {
+  // 既にあなたが持ってるならこれは不要（ある方を使ってOK）
+  return [...arr].sort(() => Math.random() - 0.5);
+}
+
+// count体ぶん、重複なしでアイテムを配る（必要ならシャッフルして先頭から取る）
+function assignUniqueItems(pokemons, items) {
+  if (pokemons.length > items.length) {
+    alert("アイテム数が足りません（重複なし設定のため）\nアイテムを増やすか、チーム人数を減らしてください。");
+    return null;
+  }
+
+  const itemPool = shuffle(items);
+  return pokemons.map((p, idx) => ({
+    ...p,
+    item: itemPool[idx]
+  }));
+}
 
 // 現在のUI状態を読み取って保存
 function saveSettings() {
@@ -1476,16 +1517,35 @@ function selectTeams() {
   let team1, team2, tries = 0;
 
   do {
-    const shuffled = shuffle(filteredBox);
-    team1 = shuffled.slice(0, teamSize).map(p => ({
-    ...p,
-    item: pickRandomItem()
-    }));
+    // いったんアイテムなしでチームを作る
+team1 = shuffled.slice(0, teamSize);
+team2 = shuffled.slice(teamSize, teamSize * 2);
 
-    team2 = shuffled.slice(teamSize, teamSize * 2).map(p => ({
+// アイテムON/OFF（チェックボックスが無いなら true でもOK）
+const enableItems = document.getElementById("enableItems")?.checked ?? true;
+
+if (enableItems) {
+  // 2パターン合計でアイテム重複なし
+  const combined = [...team1, ...team2];
+
+  if (combined.length > ITEM_LIST.length) {
+    alert("アイテム数が足りません（重複なしのため）\nアイテムを増やすか、チーム人数を減らしてください。");
+    return;
+  }
+
+  const itemPool = shuffle([...ITEM_LIST]); // シャッフルして先頭から配る
+  const withItems = combined.map((p, idx) => ({
     ...p,
-    item: pickRandomItem()
-    }));
+    item: itemPool[idx]
+  }));
+
+  team1 = withItems.slice(0, teamSize);
+  team2 = withItems.slice(teamSize);
+} else {
+  // OFFなら item を空に
+  team1 = team1.map(p => ({ ...p, item: null }));
+  team2 = team2.map(p => ({ ...p, item: null }));
+}
     tries++;
 
     if (tries > 400) {
@@ -1499,10 +1559,11 @@ function selectTeams() {
 
   // 表示
   document.getElementById("team1").innerHTML =
-    team1.map(p => `<li>${p.name}（${p.item}）</li>`).join("");
+    team1.map(p => `<li>${p.name}${p.item ? `（${p.item}）` : ""}</li>`).join("");
 
   document.getElementById("team2").innerHTML =
-    team2.map(p => `<li>${p.name}（${p.item}）</li>`).join("");
+    team2.map(p => `<li>${p.name}${p.item ? `（${p.item}）` : ""}</li>`).join("");
+
 }
 
 const ENEMY_MOVES = [
