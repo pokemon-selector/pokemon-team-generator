@@ -88,6 +88,11 @@
   <ul id="team2"></ul>
 </div>
 
+<div class="box">
+  <h2>タイプ指定（複数選択OK）</h2>
+  <div id="typeFilters" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
+</div>
+
 <button onclick="selectTeams()">選出する</button>
 
 <script>
@@ -1213,6 +1218,8 @@ window.addEventListener("DOMContentLoaded", async () => {
       types: getTypes(name)
     }));
 
+    renderTypeCheckboxes(); // ←追加
+
     console.log("タイプ未取得:", BOX.filter(p => p.types === null).map(p => p.name));
   } catch (e) {
     console.error(e);
@@ -1248,6 +1255,37 @@ function shuffle(array) {
   return [...array].sort(() => Math.random() - 0.5);
 }
 
+const ALL_TYPES = [
+  "ノーマル","ほのお","みず","でんき","くさ","こおり","かくとう","どく","じめん",
+  "ひこう","エスパー","むし","いわ","ゴースト","ドラゴン","あく","はがね","フェアリー"
+];
+
+// チェックボックスUIを作る（DOMContentLoaded後に呼ぶ）
+function renderTypeCheckboxes() {
+  const wrap = document.getElementById("typeFilters");
+  wrap.innerHTML = ALL_TYPES.map(t => `
+    <label style="display:flex;align-items:center;gap:6px;background:#fff;padding:8px;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.08);">
+      <input type="checkbox" value="${t}">
+      <span>${t}</span>
+    </label>
+  `).join("");
+}
+
+// チェックされているタイプ一覧を取得
+function getSelectedTypes() {
+  return Array.from(document.querySelectorAll("#typeFilters input[type=checkbox]:checked"))
+    .map(el => el.value);
+}
+
+// OR条件：選ばれたタイプのどれか1つでも含めばOK
+function filterByTypes_OR(pool, selectedTypes) {
+  if (selectedTypes.length === 0) return pool; // 未選択なら絞らない
+  return pool.filter(p => {
+    const types = p.types ?? [];
+    return selectedTypes.some(t => types.includes(t));
+  });
+}
+
 function selectTeams() {
   // 世代
   const enabledGens = Array.from(
@@ -1259,21 +1297,32 @@ function selectTeams() {
     document.querySelectorAll(".cat:checked")
   ).map(cb => cb.value);
 
+  // タイプ（チェックされたもの）
+  const enabledTypes = Array.from(
+    document.querySelectorAll("#typeFilters input[type=checkbox]:checked")
+  ).map(cb => cb.value);
+
+  // OR条件（選択なしなら全許可）
+  const typeOk = (p) => {
+    if (enabledTypes.length === 0) return true;
+    const t = p.types ?? [];
+    return enabledTypes.some(x => t.includes(x));
+  };
+
   // 伝説・幻の上限
-  const limit = Number(
-    document.getElementById("legendLimit").value
-  );
+  const limit = Number(document.getElementById("legendLimit").value);
 
   // チーム人数
   const teamSize = Number(document.getElementById("teamSize").value);
 
-  // 条件で絞る
+  // 条件で絞る（←ここに typeOk 追加）
   const filteredBox = BOX.filter(p =>
     enabledGens.includes(p.gen) &&
-    enabledCats.includes(p.category)
+    enabledCats.includes(p.category) &&
+    typeOk(p)
   );
 
-  if (filteredBox.length < 6) {
+  if (filteredBox.length < teamSize * 2) {
     alert("条件に対してポケモンが足りません");
     return;
   }
@@ -1281,7 +1330,7 @@ function selectTeams() {
   // 制限を満たすまで抽選
   let team1, team2, tries = 0;
 
- do {
+  do {
     const shuffled = shuffle(filteredBox);
     team1 = shuffled.slice(0, teamSize);
     team2 = shuffled.slice(teamSize, teamSize * 2);
