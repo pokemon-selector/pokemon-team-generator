@@ -1405,6 +1405,7 @@ function saveSettings() {
     legendLimit: Number(document.getElementById("legendLimit")?.value ?? 0),
     teamSize: Number(document.getElementById("teamSize")?.value ?? 3),
     typeCap: Number(document.getElementById("typeCap")?.value ?? 0),
+    enableItems: document.getElementById("enableItems")?.checked ?? true,
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
 }
@@ -1448,6 +1449,10 @@ function loadSettings() {
     });
   }
 
+  //アイテムの有無
+  if (document.getElementById("enableItems") && typeof settings.enableItems === "boolean") {
+    document.getElementById("enableItems").checked = settings.enableItems;
+  }
   // 数値系
   if (document.getElementById("legendLimit") && Number.isFinite(settings.legendLimit)) {
     document.getElementById("legendLimit").value = String(settings.legendLimit);
@@ -1458,6 +1463,7 @@ function loadSettings() {
   if (document.getElementById("typeCap") && Number.isFinite(settings.typeCap)) {
     document.getElementById("typeCap").value = String(settings.typeCap);
   }
+  
 }
 
 function attachAutoSave() {
@@ -1472,7 +1478,8 @@ function attachAutoSave() {
       t.matches("#typeFilters input[type=checkbox]") ||
       t.matches("#legendLimit") ||
       t.matches("#teamSize") ||
-      t.matches("#typeCap")
+      t.matches("#typeCap") ||
+      t.matches("#enableItems")
     ) {
       saveSettings();
     }
