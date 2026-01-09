@@ -1201,7 +1201,18 @@ const LIMITED_CATEGORIES = ["legend", "mythical"];
 
 const teamSize = Number(document.getElementById("teamSize").value);
 
-
+const ITEM_LIST = [
+  "たべのこし",
+  "こだわりスカーフ",
+  "こだわりハチマキ",
+  "こだわりメガネ",
+  "きあいのタスキ",
+  "いのちのたま",
+  "オボンのみ",
+  "ラムのみ",
+  "とつげきチョッキ",
+  "じゃくてんほけん"
+];
 
 // ===== 世代判定 =====
 function getGen(name) {
@@ -1339,6 +1350,11 @@ function isTypeCapOk(pokemons, cap) {
 
 const STORAGE_KEY = "poke_selector_settings_v1";
 
+function pickRandomItem() {
+  const i = Math.floor(Math.random() * ITEM_LIST.length);
+  return ITEM_LIST[i];
+}
+
 // 現在のUI状態を読み取って保存
 function saveSettings() {
   const settings = {
@@ -1461,8 +1477,15 @@ function selectTeams() {
 
   do {
     const shuffled = shuffle(filteredBox);
-    team1 = shuffled.slice(0, teamSize);
-    team2 = shuffled.slice(teamSize, teamSize * 2);
+    team1 = shuffled.slice(0, teamSize).map(p => ({
+    ...p,
+    item: pickRandomItem()
+    }));
+
+    team2 = shuffled.slice(teamSize, teamSize * 2).map(p => ({
+    ...p,
+    item: pickRandomItem()
+    }));
     tries++;
 
     if (tries > 400) {
@@ -1476,10 +1499,10 @@ function selectTeams() {
 
   // 表示
   document.getElementById("team1").innerHTML =
-    team1.map(p => `<li>${p.name}</li>`).join("");
+    team1.map(p => `<li>${p.name}（${p.item}）</li>`).join("");
 
   document.getElementById("team2").innerHTML =
-    team2.map(p => `<li>${p.name}</li>`).join("");
+    team2.map(p => `<li>${p.name}（${p.item}）</li>`).join("");
 }
 
 const ENEMY_MOVES = [
