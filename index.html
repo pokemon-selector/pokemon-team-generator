@@ -61,6 +61,15 @@
 </div>
 
 <div class="box">
+  <h2>伝説・幻の最大数</h2>
+  <select id="legendLimit">
+    <option value="1">最大1体</option>
+    <option value="2">最大2体</option>
+    <option value="3">最大3体</option>
+  </select>
+</div>
+
+<div class="box">
   <h2>パターン1</h2>
   <ul id="team1"></ul>
 </div>
@@ -1133,6 +1142,8 @@ const CATEGORY_MAP = {
   ]
 };
 
+const LIMITED_CATEGORIES = ["legend", "mythical"];
+
 // ===== 世代判定 =====
 function getGen(name) {
   for (const gen in GEN_MAP) {
@@ -1165,22 +1176,33 @@ console.table(BOX);
 console.log("世代未分類:", BOX.filter(p => p.gen === null));
 console.log("カテゴリ未分類:", BOX.filter(p => p.category === "normal"));
 
+function countLimited(pokemons) {
+  return pokemons.filter(p =>
+    p.category === "legend" || p.category === "mythical"
+  ).length;
+}
+
 function shuffle(array) {
   return [...array].sort(() => Math.random() - 0.5);
 }
 
 function selectTeams() {
-  // 選択された世代
+  // 世代
   const enabledGens = Array.from(
     document.querySelectorAll(".gen:checked")
   ).map(cb => Number(cb.value));
 
-  // 選択されたカテゴリ
+  // カテゴリ
   const enabledCats = Array.from(
     document.querySelectorAll(".cat:checked")
   ).map(cb => cb.value);
 
-  // 条件でBOXを絞る
+  // 伝説・幻の上限
+  const limit = Number(
+    document.getElementById("legendLimit").value
+  );
+
+  // 条件で絞る
   const filteredBox = BOX.filter(p =>
     enabledGens.includes(p.gen) &&
     enabledCats.includes(p.category)
@@ -1191,17 +1213,29 @@ function selectTeams() {
     return;
   }
 
-  const shuffled = shuffle(filteredBox);
-  const team1 = shuffled.slice(0, 3);
-  const team2 = shuffled.slice(3, 6);
+  // 制限を満たすまで抽選
+  let team1, team2, tries = 0;
 
+  do {
+    const shuffled = shuffle(filteredBox);
+    team1 = shuffled.slice(0, 3);
+    team2 = shuffled.slice(3, 6);
+    tries++;
+    if (tries > 100) {
+      alert("条件が厳しすぎます");
+      return;
+    }
+  } while (
+    countLimited([...team1, ...team2]) > limit
+  );
+
+  // 表示
   document.getElementById("team1").innerHTML =
     team1.map(p => `<li>${p.name}</li>`).join("");
 
   document.getElementById("team2").innerHTML =
     team2.map(p => `<li>${p.name}</li>`).join("");
 }
-
 </script>
 
 </body>
