@@ -42,6 +42,25 @@
 <h1>ポケモン自動選出</h1>
 
 <div class="box">
+  <h2>世代</h2>
+  <label><input type="checkbox" class="gen" value="1" checked> 第1世代</label><br>
+  <label><input type="checkbox" class="gen" value="2" checked> 第2世代</label><br>
+  <label><input type="checkbox" class="gen" value="3" checked> 第3世代</label><br>
+  <label><input type="checkbox" class="gen" value="4" checked> 第4世代</label><br>
+  <label><input type="checkbox" class="gen" value="5" checked> 第5世代</label><br>
+  <label><input type="checkbox" class="gen" value="6" checked> 第6世代</label><br>
+  <label><input type="checkbox" class="gen" value="7" checked> 第7世代</label>
+</div>
+
+<div class="box">
+  <h2>カテゴリ</h2>
+  <label><input type="checkbox" class="cat" value="normal" checked> 通常</label><br>
+  <label><input type="checkbox" class="cat" value="subLegend" checked> 準伝説</label><br>
+  <label><input type="checkbox" class="cat" value="legend" checked> 伝説</label><br>
+  <label><input type="checkbox" class="cat" value="mythical" checked> 幻</label>
+</div>
+
+<div class="box">
   <h2>パターン1</h2>
   <ul id="team1"></ul>
 </div>
@@ -1151,25 +1170,38 @@ function shuffle(array) {
 }
 
 function selectTeams() {
-  if (BOX.length < 6) {
-    alert("BOXの数が足りません");
+  // 選択された世代
+  const enabledGens = Array.from(
+    document.querySelectorAll(".gen:checked")
+  ).map(cb => Number(cb.value));
+
+  // 選択されたカテゴリ
+  const enabledCats = Array.from(
+    document.querySelectorAll(".cat:checked")
+  ).map(cb => cb.value);
+
+  // 条件でBOXを絞る
+  const filteredBox = BOX.filter(p =>
+    enabledGens.includes(p.gen) &&
+    enabledCats.includes(p.category)
+  );
+
+  if (filteredBox.length < 6) {
+    alert("条件に対してポケモンが足りません");
     return;
   }
 
-  // シャッフル
-  const shuffled = shuffle(BOX);
-
-  // 3体ずつ・被りなし
+  const shuffled = shuffle(filteredBox);
   const team1 = shuffled.slice(0, 3);
   const team2 = shuffled.slice(3, 6);
 
-  // 表示
   document.getElementById("team1").innerHTML =
     team1.map(p => `<li>${p.name}</li>`).join("");
 
   document.getElementById("team2").innerHTML =
     team2.map(p => `<li>${p.name}</li>`).join("");
 }
+
 </script>
 
 </body>
