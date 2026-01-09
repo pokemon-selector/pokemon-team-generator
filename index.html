@@ -83,18 +83,21 @@
   <div id="typeFilters" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
 </div>
 
-<div class="option">
-  <span class="option-label">同タイプの上限</span>
-  <select id="typeCap" class="option-select">
-    <option value="0">無制限</option>
-    <option value="1">1体まで</option>
-    <option value="2" selected>2体まで</option>
-    <option value="3">3体まで</option>
-    <option value="4">4体まで</option>
-    <option value="5">5体まで</option>
-    <option value="6">6体まで</option>
-    <option value="12">12体まで</option>
-  </select>
+
+<div class="box">
+  <label>
+    同タイプの上限（0なら無制限）:
+    <select id="typeCap">
+      <option value="0">無制限</option>
+      <option value="1">1体まで</option>
+      <option value="2" selected>2体まで</option>
+      <option value="3">3体まで</option>
+      <option value="4">4体まで</option>
+      <option value="5">5体まで</option>
+      <option value="6">6体まで</option>
+      <option value="12">12体まで</option>
+    </select>
+  </label>
 </div>
 
 <div class="box">
