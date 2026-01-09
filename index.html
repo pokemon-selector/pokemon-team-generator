@@ -467,7 +467,7 @@ const RAW_BOX = [
     "バルジーナ",
     "クイタラン",
     "アイアント",
-    "モノズ",
+    "ジヘッド",
     "サザンドラ",
     "ウルガモス",
     "コバルオン",
@@ -497,7 +497,7 @@ const RAW_BOX = [
     "ニャオニクス",
     "ヒトツキ",
     "ギルガルド",
-    "アロマティス",
+    "フレフワン",
     "ペロリーム",
     "カラマネロ",
     "ガメノデス",
@@ -528,7 +528,6 @@ const RAW_BOX = [
     "ケケンカニ",
     "デカグース",
     "クワガノン",
-    "キケンカニ",
     "アブリボン",
     "ルガルガン",
     "ドヒドイデ",
@@ -962,7 +961,7 @@ const GEN_MAP = {
     "バルジーナ",
     "クイタラン",
     "アイアント",
-    "モノズ",
+    "ジヘッド",
     "サザンドラ",
     "ウルガモス",
     "コバルオン",
@@ -994,7 +993,7 @@ const GEN_MAP = {
     "ニャオニクス",
     "ヒトツキ",
     "ギルガルド",
-    "アロマティス",
+    "フレフワン",
     "ペロリーム",
     "カラマネロ",
     "ガメノデス",
@@ -1027,7 +1026,6 @@ const GEN_MAP = {
     "ケケンカニ",
     "デカグース",
     "クワガノン",
-    "キケンカニ",
     "アブリボン",
     "ルガルガン",
     "ドヒドイデ",
@@ -1152,9 +1150,22 @@ const CATEGORY_MAP = {
   ]
 };
 
+const FORM_ALIAS = {
+  "アローラライチュウ": "raichu-alola",
+  "アローラガラガラ": "marowak-alola",
+  "アローラサンドパン": "sandslash-alola",
+  "アローラキュウコン": "ninetales-alola",
+  "アローラダグトリオ": "dugtrio-alola",
+  "アローラナッシー": "exeggutor-alola",
+  "アローラゴローニャ": "golem-alola",
+  "アローラベトベトン": "muk-alola"
+};
+
 const LIMITED_CATEGORIES = ["legend", "mythical"];
 
 const teamSize = Number(document.getElementById("teamSize").value);
+
+
 
 // ===== 世代判定 =====
 function getGen(name) {
@@ -1176,12 +1187,51 @@ function getCategory(name) {
   return "normal";
 }
 
+
+// ===== タイプ判定 =====
+function getTypes(name) {
+  const result = [];
+
+  for (const type in TYPE_MAP) {
+    if (TYPE_MAP[type].includes(name)) {
+      result.push(type);
+    }
+  }
+
+  return result.length > 0 ? result : null;
+}
+
 // ===== 改良BOX生成 =====
-const BOX = RAW_BOX.map(name => ({
-  name: name,
-  gen: getGen(name),
-  category: getCategory(name)
-}));
+window.addEventListener("DOMContentLoaded", async () => {
+  try {
+    await loadTypesDb();
+
+    BOX = RAW_BOX.map(name => ({
+      name,
+      gen: getGen(name),
+      category: getCategory(name),
+      types: getTypes(name)
+    }));
+
+    console.log("タイプ未取得:", BOX.filter(p => p.types === null).map(p => p.name));
+  } catch (e) {
+    console.error(e);
+    alert("タイプDBの読み込みに失敗しました（types_db.json を確認してください）");
+  }
+});
+let TYPES_DB = {}; // "日本語名" -> ["タイプ","タイプ"]
+
+async function loadTypesDb() {
+  const res = await fetch("types_db.json");
+  if (!res.ok) throw new Error("types_db.json が読み込めません");
+  TYPES_DB = await res.json();
+}
+
+function getTypes(name) {
+  return TYPES_DB[name] ?? null;
+}
+
+let BOX = [];
 
 // （確認用）未分類チェック
 console.table(BOX);
