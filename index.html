@@ -1226,7 +1226,6 @@ const ITEM_LIST = [
   "メトロノーム",
   "レッドカード",
   "ゴツゴツメット",
-  "しんかのきせき",
   "せんせいのツメ",
   "だっしゅつボタン",
   "たつじんのおび",
@@ -1396,6 +1395,15 @@ function assignUniqueItems(pokemons, items) {
   }));
 }
 
+function assignUniqueItemsToTeam(team) {
+  if (team.length > ITEM_LIST.length) {
+    alert("アイテム数が足りません（重複なしのため）\nアイテムを増やすか、チーム人数を減らしてください。");
+    return null;
+  }
+  const pool = shuffle(ITEM_LIST.slice()); // チームごとに別シャッフル
+  return team.map((p, idx) => ({ ...p, item: pool[idx] }));
+}
+
 // 現在のUI状態を読み取って保存
 function saveSettings() {
   const settings = {
@@ -1535,28 +1543,21 @@ const enableItemsEl = document.getElementById("enableItems");
 if (enableItemsEl) enableItems = enableItemsEl.checked;
 
 if (enableItems) {
-  // 2パターン合計でアイテム重複なし
-  const combined = team1.concat(team2);
+  // A仕様：パターン1内で重複なし、パターン2内でも重複なし（ただし相互の重複はOK）
+  const t1 = assignUniqueItemsToTeam(team1);
+  if (!t1) return;
 
-  if (combined.length > ITEM_LIST.length) {
-    alert("アイテム数が足りません（重複なしのため）\nアイテムを増やすか、チーム人数を減らしてください。");
-    return;
-  }
+  const t2 = assignUniqueItemsToTeam(team2);
+  if (!t2) return;
 
-  const itemPool = shuffle(ITEM_LIST.slice()); // コピーしてシャッフル
-  const withItems = combined.map((p, idx) => ({
-    ...p,
-    item: itemPool[idx]
-  }));
-
-  team1 = withItems.slice(0, teamSize);
-  team2 = withItems.slice(teamSize);
+  team1 = t1;
+  team2 = t2;
 } else {
   team1 = team1.map(p => ({ ...p, item: null }));
   team2 = team2.map(p => ({ ...p, item: null }));
 }
 
-    tries++;
+tries++;
 
     if (tries > 400) {
       alert("条件が厳しすぎます（同タイプ上限・伝説上限などを緩めてください）");
