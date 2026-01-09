@@ -83,6 +83,19 @@
   <div id="typeFilters" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
 </div>
 
+<label style="display:block;margin-top:10px;">
+  同タイプの上限（0なら無制限）:
+  <select id="typeCap">
+    <option value="0">無制限</option>
+    <option value="1">1体まで</option>
+    <option value="2" selected>2体まで</option>
+    <option value="3">3体まで</option>
+    <option value="4">4体まで</option>
+    <option value="5">5体まで</option>
+    <option value="6">6体まで</option>
+    <option value="12">12体まで</option>
+  </select>
+</label>
 
 <div class="box">
   <h2>パターン1</h2>
@@ -1287,6 +1300,24 @@ function filterByTypes_OR(pool, selectedTypes) {
   });
 }
 
+function countTypes(pokemons) {
+  const map = {}; // { "ひこう": 3, ... }
+  for (const p of pokemons) {
+    const types = p.types ?? [];
+    for (const t of types) {
+      map[t] = (map[t] || 0) + 1;
+    }
+  }
+  return map;
+}
+
+function isTypeCapOk(pokemons, cap) {
+  if (!cap || cap <= 0) return true; // 0なら無制限
+  const typeCounts = countTypes(pokemons);
+  return Object.values(typeCounts).every(c => c <= cap);
+}
+
+
 function selectTeams() {
   // 世代
   const enabledGens = Array.from(
@@ -1298,29 +1329,21 @@ function selectTeams() {
     document.querySelectorAll(".cat:checked")
   ).map(cb => cb.value);
 
-  // タイプ（チェックされたもの）
-  const enabledTypes = Array.from(
-    document.querySelectorAll("#typeFilters input[type=checkbox]:checked")
-  ).map(cb => cb.value);
-
-  // OR条件（選択なしなら全許可）
-  const typeOk = (p) => {
-    if (enabledTypes.length === 0) return true;
-    const t = p.types ?? [];
-    return enabledTypes.some(x => t.includes(x));
-  };
-
   // 伝説・幻の上限
-  const limit = Number(document.getElementById("legendLimit").value);
+  const limit = Number(
+    document.getElementById("legendLimit").value
+  );
 
   // チーム人数
   const teamSize = Number(document.getElementById("teamSize").value);
 
-  // 条件で絞る（←ここに typeOk 追加）
+  // 同タイプ上限（0なら無制限）
+  const typeCap = Number(document.getElementById("typeCap").value);
+
+  // 条件で絞る
   const filteredBox = BOX.filter(p =>
     enabledGens.includes(p.gen) &&
-    enabledCats.includes(p.category) &&
-    typeOk(p)
+    enabledCats.includes(p.category)
   );
 
   if (filteredBox.length < teamSize * 2) {
@@ -1336,12 +1359,14 @@ function selectTeams() {
     team1 = shuffled.slice(0, teamSize);
     team2 = shuffled.slice(teamSize, teamSize * 2);
     tries++;
-    if (tries > 200) {
-      alert("条件が厳しすぎます（伝説・幻の上限などを緩めてください）");
+
+    if (tries > 400) {
+      alert("条件が厳しすぎます（同タイプ上限・伝説上限などを緩めてください）");
       return;
     }
   } while (
-    countLimited([...team1, ...team2]) > limit
+    countLimited([...team1, ...team2]) > limit ||
+    !isTypeCapOk([...team1, ...team2], typeCap)
   );
 
   // 表示
@@ -1351,6 +1376,7 @@ function selectTeams() {
   document.getElementById("team2").innerHTML =
     team2.map(p => `<li>${p.name}</li>`).join("");
 }
+
 </script>
 
 </body>
